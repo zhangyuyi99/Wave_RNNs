@@ -77,7 +77,7 @@ class coRNN(nn.Module):
         outputs = []
 
         for t in range(x.size(0)):
-            hy = self.cell(x[t], hy)
+            hy = self.cell(x[t].unsqueeze(1), hy)
             if get_seq:
                 y_seq.append(hy.view(x.size(1), self.n_ch, self.spatial, self.spatial).detach().cpu())
             output = self.readout(hy)

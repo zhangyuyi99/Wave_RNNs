@@ -48,7 +48,7 @@ parser.add_argument('--init', type=str, default='eye',
                     help='initalization for RNN')
 parser.add_argument('--freeze_rnn', type=str, default='no',
                     help='Make Recurrent weights untrained')
-parser.add_argument('--one_hot', type=str, default='True',
+parser.add_argument('--one_hot', type=str, default='False',
                     help='Make Recurrent weights untrained')
 parser.add_argument('--only_last', type=str, default='False',
                     help='Only train on last ouputs')
@@ -67,7 +67,7 @@ if utils.str_to_bool(args.one_hot) == True:
     n_inp = 10
 else:
     n_inp = 1
-n_out = 10
+n_out = n_inp
 
 is_sweep = utils.str_to_bool(args.is_sweep)
 
@@ -78,9 +78,9 @@ model = model_select[args.model_type].coRNN(n_inp, args.n_hid, n_out, args.n_ch,
 
 import wandb
 wandb.init(name=args.run_name,
-            project='PROJECT_NAME', 
-            entity='ENTITY_NAME', 
-            dir='WANDB_DIR',
+            project='COPY',
+            # entity='ENTITY_NAME',
+            dir='copy/',
             config=args)
             
 wandb.watch(model)
@@ -113,7 +113,7 @@ test_mse = []
 best_mse = 1e10
 flat_steps = 0
 for i in tqdm(range(args.max_steps), desc=f"Copy_{args.model_type}_h{args.n_hid}, T{args.T}", disable=is_sweep):
-    data, label = utils.get_batch(args.batch, args.T)
+    data, label = utils.get_batch(args.batch, args.T, args.one_hot, args.mem_len)
     label = label
     
     optimizer.zero_grad()
@@ -123,7 +123,9 @@ for i in tqdm(range(args.max_steps), desc=f"Copy_{args.model_type}_h{args.n_hid}
     if utils.str_to_bool(args.only_last) == True:
         out = out[-args.mem_len:]
         label = label[-args.mem_len:]
-    loss = objective(out.reshape(-1, n_inp), label.to(device).reshape(-1).long())
+    print("out shape:", out.shape)
+    print("label shape:", label.shape)
+    loss = objective(out.reshape(-1, n_inp).squeeze(-1), label.to(device).reshape(-1).float())
     loss = loss / float(args.batch)
     loss.backward()
     

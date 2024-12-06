@@ -73,9 +73,7 @@ model = model_select[args.model_type].coRNN(n_inp, args.n_hid, n_out, args.n_ch,
 
 import wandb
 wandb.init(name=args.run_name,
-            project='PROJECT_NAME', 
-            entity='ENTITY_NAME', 
-            dir='WANDB_DIR',
+            project="adding_task", 
             config=args)
             
 wandb.watch(model)
